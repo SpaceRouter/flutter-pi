@@ -10,8 +10,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h> 
-#include <stdio.h> 
+#include <ctype.h>
+#include <stdio.h>
 #include <glob.h>
 
 #include <xf86drm.h>
@@ -30,72 +30,82 @@
 #include <collection.h>
 #include <keyboard.h>
 
-#define LOAD_EGL_PROC(flutterpi_struct, name) \
-    do { \
-		char proc[256]; \
-		snprintf(proc, 256, "%s", "egl" #name); \
-		proc[3] = toupper(proc[3]); \
-        (flutterpi_struct).egl.name = (void*) eglGetProcAddress(proc); \
-        if ((flutterpi_struct).egl.name == NULL) { \
-            fprintf(stderr, "[flutter-pi] FATAL: Could not resolve EGL procedure " #name "\n"); \
-            return EINVAL; \
-        } \
-    } while (false)
-
-#define LOAD_GL_PROC(flutterpi_struct, name) \
-	do { \
-		char proc_name[256]; \
-		snprintf(proc_name, 256, "gl" #name); \
-		proc_name[2] = toupper(proc_name[2]); \
-		(flutterpi_struct).gl.name = (void*) eglGetProcAddress(proc_name); \
-		if ((flutterpi_struct).gl.name == NULL) { \
-			fprintf(stderr, "[flutter-pi] FATAL: Could not resolve GL procedure " #name "\n"); \
-			return EINVAL; \
-		} \
+#define LOAD_EGL_PROC(flutterpi_struct, name)                                                   \
+	do                                                                                          \
+	{                                                                                           \
+		char proc[256];                                                                         \
+		snprintf(proc, 256, "%s", "egl" #name);                                                 \
+		proc[3] = toupper(proc[3]);                                                             \
+		(flutterpi_struct).egl.name = (void *)eglGetProcAddress(proc);                          \
+		if ((flutterpi_struct).egl.name == NULL)                                                \
+		{                                                                                       \
+			fprintf(stderr, "[flutter-pi] FATAL: Could not resolve EGL procedure " #name "\n"); \
+			return EINVAL;                                                                      \
+		}                                                                                       \
 	} while (false)
 
-enum device_orientation {
-	kPortraitUp, kLandscapeLeft, kPortraitDown, kLandscapeRight
+#define LOAD_GL_PROC(flutterpi_struct, name)                                                   \
+	do                                                                                         \
+	{                                                                                          \
+		char proc_name[256];                                                                   \
+		snprintf(proc_name, 256, "gl" #name);                                                  \
+		proc_name[2] = toupper(proc_name[2]);                                                  \
+		(flutterpi_struct).gl.name = (void *)eglGetProcAddress(proc_name);                     \
+		if ((flutterpi_struct).gl.name == NULL)                                                \
+		{                                                                                      \
+			fprintf(stderr, "[flutter-pi] FATAL: Could not resolve GL procedure " #name "\n"); \
+			return EINVAL;                                                                     \
+		}                                                                                      \
+	} while (false)
+
+enum device_orientation
+{
+	kPortraitUp,
+	kLandscapeLeft,
+	kPortraitDown,
+	kLandscapeRight
 };
 
-struct libflutter_engine {
-	FlutterEngineResult (*FlutterEngineCreateAOTData)(const FlutterEngineAOTDataSource* source, FlutterEngineAOTData* data_out);
+struct libflutter_engine
+{
+	FlutterEngineResult (*FlutterEngineCreateAOTData)(const FlutterEngineAOTDataSource *source, FlutterEngineAOTData *data_out);
 	FlutterEngineResult (*FlutterEngineCollectAOTData)(FlutterEngineAOTData data);
-	FlutterEngineResult (*FlutterEngineRun)(size_t version, const FlutterRendererConfig* config, const FlutterProjectArgs* args, void* user_data, FlutterEngine *engine_out);
+	FlutterEngineResult (*FlutterEngineRun)(size_t version, const FlutterRendererConfig *config, const FlutterProjectArgs *args, void *user_data, FlutterEngine *engine_out);
 	FlutterEngineResult (*FlutterEngineShutdown)(FlutterEngine engine);
-	FlutterEngineResult (*FlutterEngineInitialize)(size_t version, const FlutterRendererConfig* config, const FlutterProjectArgs* args, void* user_data, FlutterEngine *engine_out);
+	FlutterEngineResult (*FlutterEngineInitialize)(size_t version, const FlutterRendererConfig *config, const FlutterProjectArgs *args, void *user_data, FlutterEngine *engine_out);
 	FlutterEngineResult (*FlutterEngineDeinitialize)(FlutterEngine engine);
 	FlutterEngineResult (*FlutterEngineRunInitialized)(FlutterEngine engine);
-	FlutterEngineResult (*FlutterEngineSendWindowMetricsEvent)(FlutterEngine engine, const FlutterWindowMetricsEvent* event);
-	FlutterEngineResult (*FlutterEngineSendPointerEvent)(FlutterEngine engine, const FlutterPointerEvent* events, size_t events_count);
-	FlutterEngineResult (*FlutterEngineSendPlatformMessage)(FlutterEngine engine, const FlutterPlatformMessage* message);
-	FlutterEngineResult (*FlutterPlatformMessageCreateResponseHandle)(FlutterEngine engine, FlutterDataCallback data_callback, void* user_data, FlutterPlatformMessageResponseHandle** response_out);
-	FlutterEngineResult (*FlutterPlatformMessageReleaseResponseHandle)(FlutterEngine engine, FlutterPlatformMessageResponseHandle* response);
-	FlutterEngineResult (*FlutterEngineSendPlatformMessageResponse)(FlutterEngine engine, const FlutterPlatformMessageResponseHandle* handle, const uint8_t* data, size_t data_length);
+	FlutterEngineResult (*FlutterEngineSendWindowMetricsEvent)(FlutterEngine engine, const FlutterWindowMetricsEvent *event);
+	FlutterEngineResult (*FlutterEngineSendPointerEvent)(FlutterEngine engine, const FlutterPointerEvent *events, size_t events_count);
+	FlutterEngineResult (*FlutterEngineSendPlatformMessage)(FlutterEngine engine, const FlutterPlatformMessage *message);
+	FlutterEngineResult (*FlutterPlatformMessageCreateResponseHandle)(FlutterEngine engine, FlutterDataCallback data_callback, void *user_data, FlutterPlatformMessageResponseHandle **response_out);
+	FlutterEngineResult (*FlutterPlatformMessageReleaseResponseHandle)(FlutterEngine engine, FlutterPlatformMessageResponseHandle *response);
+	FlutterEngineResult (*FlutterEngineSendPlatformMessageResponse)(FlutterEngine engine, const FlutterPlatformMessageResponseHandle *handle, const uint8_t *data, size_t data_length);
 	FlutterEngineResult (*__FlutterEngineFlushPendingTasksNow)();
 	FlutterEngineResult (*FlutterEngineRegisterExternalTexture)(FlutterEngine engine, int64_t texture_identifier);
 	FlutterEngineResult (*FlutterEngineUnregisterExternalTexture)(FlutterEngine engine, int64_t texture_identifier);
 	FlutterEngineResult (*FlutterEngineMarkExternalTextureFrameAvailable)(FlutterEngine engine, int64_t texture_identifier);
 	FlutterEngineResult (*FlutterEngineUpdateSemanticsEnabled)(FlutterEngine engine, bool enabled);
 	FlutterEngineResult (*FlutterEngineUpdateAccessibilityFeatures)(FlutterEngine engine, FlutterAccessibilityFeature features);
-	FlutterEngineResult (*FlutterEngineDispatchSemanticsAction)(FlutterEngine engine, uint64_t id, FlutterSemanticsAction action, const uint8_t* data, size_t data_length);
+	FlutterEngineResult (*FlutterEngineDispatchSemanticsAction)(FlutterEngine engine, uint64_t id, FlutterSemanticsAction action, const uint8_t *data, size_t data_length);
 	FlutterEngineResult (*FlutterEngineOnVsync)(FlutterEngine engine, intptr_t baton, uint64_t frame_start_time_nanos, uint64_t frame_target_time_nanos);
 	FlutterEngineResult (*FlutterEngineReloadSystemFonts)(FlutterEngine engine);
-	void (*FlutterEngineTraceEventDurationBegin)(const char* name);
-	void (*FlutterEngineTraceEventDurationEnd)(const char* name);
-	void (*FlutterEngineTraceEventInstant)(const char* name);
-	FlutterEngineResult (*FlutterEnginePostRenderThreadTask)(FlutterEngine engine, VoidCallback callback, void* callback_data);
+	void (*FlutterEngineTraceEventDurationBegin)(const char *name);
+	void (*FlutterEngineTraceEventDurationEnd)(const char *name);
+	void (*FlutterEngineTraceEventInstant)(const char *name);
+	FlutterEngineResult (*FlutterEnginePostRenderThreadTask)(FlutterEngine engine, VoidCallback callback, void *callback_data);
 	uint64_t (*FlutterEngineGetCurrentTime)();
-	FlutterEngineResult (*FlutterEngineRunTask)(FlutterEngine engine, const FlutterTask* task);
-	FlutterEngineResult (*FlutterEngineUpdateLocales)(FlutterEngine engine, const FlutterLocale** locales, size_t locales_count);
+	FlutterEngineResult (*FlutterEngineRunTask)(FlutterEngine engine, const FlutterTask *task);
+	FlutterEngineResult (*FlutterEngineUpdateLocales)(FlutterEngine engine, const FlutterLocale **locales, size_t locales_count);
 	bool (*FlutterEngineRunsAOTCompiledDartCode)(void);
-	FlutterEngineResult (*FlutterEnginePostDartObject)(FlutterEngine engine, FlutterEngineDartPort port, const FlutterEngineDartObject* object);
+	FlutterEngineResult (*FlutterEnginePostDartObject)(FlutterEngine engine, FlutterEngineDartPort port, const FlutterEngineDartObject *object);
 	FlutterEngineResult (*FlutterEngineNotifyLowMemoryWarning)(FlutterEngine engine);
-	FlutterEngineResult (*FlutterEnginePostCallbackOnAllNativeThreads)(FlutterEngine engine, FlutterNativeThreadCallback callback, void* user_data);
-	FlutterEngineResult (*FlutterEngineNotifyDisplayUpdate)(FlutterEngine engine, FlutterEngineDisplaysUpdateType update_type, const FlutterEngineDisplay* displays, size_t display_count);
+	FlutterEngineResult (*FlutterEnginePostCallbackOnAllNativeThreads)(FlutterEngine engine, FlutterNativeThreadCallback callback, void *user_data);
+	FlutterEngineResult (*FlutterEngineNotifyDisplayUpdate)(FlutterEngine engine, FlutterEngineDisplaysUpdateType update_type, const FlutterEngineDisplay *displays, size_t display_count);
 };
 
-struct libudev {
+struct libudev
+{
 	struct udev *(*udev_ref)(struct udev *udev);
 	struct udev *(*udev_unref)(struct udev *udev);
 	struct udev *(*udev_new)(void);
@@ -148,7 +158,7 @@ struct libudev {
 	int (*udev_monitor_get_fd)(struct udev_monitor *udev_monitor);
 	struct udev_device *(*udev_monitor_receive_device)(struct udev_monitor *udev_monitor);
 	int (*udev_monitor_filter_add_match_subsystem_devtype)(struct udev_monitor *udev_monitor,
-														const char *subsystem, const char *devtype);
+														   const char *subsystem, const char *devtype);
 	int (*udev_monitor_filter_add_match_tag)(struct udev_monitor *udev_monitor, const char *tag);
 	int (*udev_monitor_filter_update)(struct udev_monitor *udev_monitor);
 	int (*udev_monitor_filter_remove)(struct udev_monitor *udev_monitor);
@@ -188,118 +198,109 @@ struct libudev {
 	int (*udev_util_encode_string)(const char *str, char *str_enc, size_t len);
 };
 
-#define ANGLE_FROM_ORIENTATION(o) \
-	((o) == kPortraitUp ? 0 : \
-	 (o) == kLandscapeLeft ? 90 : \
-	 (o) == kPortraitDown ? 180 : \
-	 (o) == kLandscapeRight ? 270 : 0)
-	
+#define ANGLE_FROM_ORIENTATION(o)                         \
+	((o) == kPortraitUp ? 0 : (o) == kLandscapeLeft ? 90  \
+						  : (o) == kPortraitDown	? 180 \
+						  : (o) == kLandscapeRight	? 270 \
+													: 0)
+
 #define ANGLE_BETWEEN_ORIENTATIONS(o_start, o_end) \
-	(ANGLE_FROM_ORIENTATION(o_end) \
-	- ANGLE_FROM_ORIENTATION(o_start) \
-	+ (ANGLE_FROM_ORIENTATION(o_start) > ANGLE_FROM_ORIENTATION(o_end) ? 360 : 0))
+	(ANGLE_FROM_ORIENTATION(o_end) - ANGLE_FROM_ORIENTATION(o_start) + (ANGLE_FROM_ORIENTATION(o_start) > ANGLE_FROM_ORIENTATION(o_end) ? 360 : 0))
 
-#define FLUTTER_TRANSLATION_TRANSFORMATION(translate_x, translate_y) ((FlutterTransformation) \
-	{.scaleX = 1, .skewX  = 0, .transX = translate_x, \
-	 .skewY  = 0, .scaleY = 1, .transY = translate_y, \
-	 .pers0  = 0, .pers1  = 0, .pers2  = 1})
+#define FLUTTER_TRANSLATION_TRANSFORMATION(translate_x, translate_y) ((FlutterTransformation){.scaleX = 1, .skewX = 0, .transX = translate_x, .skewY = 0, .scaleY = 1, .transY = translate_y, .pers0 = 0, .pers1 = 0, .pers2 = 1})
 
-#define FLUTTER_ROTX_TRANSFORMATION(deg) ((FlutterTransformation) \
-	{.scaleX = 1, .skewX  = 0,                                .transX = 0, \
-	 .skewY  = 0, .scaleY = cos(((double) (deg))/180.0*M_PI), .transY = -sin(((double) (deg))/180.0*M_PI), \
-	 .pers0  = 0, .pers1  = sin(((double) (deg))/180.0*M_PI), .pers2  = cos(((double) (deg))/180.0*M_PI)})
+#define FLUTTER_ROTX_TRANSFORMATION(deg) ((FlutterTransformation){.scaleX = 1, .skewX = 0, .transX = 0, .skewY = 0, .scaleY = cos(((double)(deg)) / 180.0 * M_PI), .transY = -sin(((double)(deg)) / 180.0 * M_PI), .pers0 = 0, .pers1 = sin(((double)(deg)) / 180.0 * M_PI), .pers2 = cos(((double)(deg)) / 180.0 * M_PI)})
 
-#define FLUTTER_ROTY_TRANSFORMATION(deg) ((FlutterTransformation) \
-	{.scaleX = cos(((double) (deg))/180.0*M_PI),  .skewX  = 0, .transX = sin(((double) (deg))/180.0*M_PI), \
-	 .skewY  = 0,                                 .scaleY = 1, .transY = 0, \
-	 .pers0  = -sin(((double) (deg))/180.0*M_PI), .pers1  = 0, .pers2  = cos(((double) (deg))/180.0*M_PI)})
+#define FLUTTER_ROTY_TRANSFORMATION(deg) ((FlutterTransformation){.scaleX = cos(((double)(deg)) / 180.0 * M_PI), .skewX = 0, .transX = sin(((double)(deg)) / 180.0 * M_PI), .skewY = 0, .scaleY = 1, .transY = 0, .pers0 = -sin(((double)(deg)) / 180.0 * M_PI), .pers1 = 0, .pers2 = cos(((double)(deg)) / 180.0 * M_PI)})
 
 /**
  * A flutter transformation that rotates any coords around the z-axis, counter-clockwise.
  */
-#define FLUTTER_ROTZ_TRANSFORMATION(deg) ((FlutterTransformation) \
-	{.scaleX = cos(((double) (deg))/180.0*M_PI), .skewX  = -sin(((double) (deg))/180.0*M_PI), .transX = 0, \
-	 .skewY  = sin(((double) (deg))/180.0*M_PI), .scaleY = cos(((double) (deg))/180.0*M_PI),  .transY = 0, \
-	 .pers0  = 0,                                .pers1  = 0,                                 .pers2  = 1})
+#define FLUTTER_ROTZ_TRANSFORMATION(deg) ((FlutterTransformation){.scaleX = cos(((double)(deg)) / 180.0 * M_PI), .skewX = -sin(((double)(deg)) / 180.0 * M_PI), .transX = 0, .skewY = sin(((double)(deg)) / 180.0 * M_PI), .scaleY = cos(((double)(deg)) / 180.0 * M_PI), .transY = 0, .pers0 = 0, .pers1 = 0, .pers2 = 1})
 
 /**
  * A transformation that is the result of multiplying a with b.
  */
-#define FLUTTER_MULTIPLIED_TRANSFORMATIONS(a, b) ((FlutterTransformation) \
-	{.scaleX = a.scaleX * b.scaleX + a.skewX  * b.skewY  + a.transX * b.pers0, \
-	 .skewX  = a.scaleX * b.skewX  + a.skewX  * b.scaleY + a.transX * b.pers1, \
-	 .transX = a.scaleX * b.transX + a.skewX  * b.transY + a.transX * b.pers2, \
-	 .skewY  = a.skewY  * b.scaleX + a.scaleY * b.skewY  + a.transY * b.pers0, \
-	 .scaleY = a.skewY  * b.skewX  + a.scaleY * b.scaleY + a.transY * b.pers1, \
-	 .transY = a.skewY  * b.transX + a.scaleY * b.transY + a.transY * b.pers2, \
-	 .pers0  = a.pers0  * b.scaleX + a.pers1  * b.skewY  + a.pers2  * b.pers0, \
-	 .pers1  = a.pers0  * b.skewX  + a.pers1  * b.scaleY + a.pers2  * b.pers1, \
-	 .pers2  = a.pers0  * b.transX + a.pers1  * b.transY + a.pers2  * b.pers2})
+#define FLUTTER_MULTIPLIED_TRANSFORMATIONS(a, b) ((FlutterTransformation){.scaleX = a.scaleX * b.scaleX + a.skewX * b.skewY + a.transX * b.pers0,  \
+																		  .skewX = a.scaleX * b.skewX + a.skewX * b.scaleY + a.transX * b.pers1,   \
+																		  .transX = a.scaleX * b.transX + a.skewX * b.transY + a.transX * b.pers2, \
+																		  .skewY = a.skewY * b.scaleX + a.scaleY * b.skewY + a.transY * b.pers0,   \
+																		  .scaleY = a.skewY * b.skewX + a.scaleY * b.scaleY + a.transY * b.pers1,  \
+																		  .transY = a.skewY * b.transX + a.scaleY * b.transY + a.transY * b.pers2, \
+																		  .pers0 = a.pers0 * b.scaleX + a.pers1 * b.skewY + a.pers2 * b.pers0,     \
+																		  .pers1 = a.pers0 * b.skewX + a.pers1 * b.scaleY + a.pers2 * b.pers1,     \
+																		  .pers2 = a.pers0 * b.transX + a.pers1 * b.transY + a.pers2 * b.pers2})
 
 /**
  * A transformation that is the result of adding a with b.
  */
-#define FLUTTER_ADDED_TRANSFORMATIONS(a, b) ((FlutterTransformation) \
-	{.scaleX = a.scaleX + b.scaleX, .skewX  = a.skewX  + b.skewX,  .transX = a.transX + b.transX, \
-	 .skewY  = a.skewY  + b.skewY,  .scaleY = a.scaleY + b.scaleY, .transY = a.transY + b.transY, \
-	 .pers0  = a.pers0  + b.pers0,  .pers1  = a.pers1  + b.pers1,  .pers2  = a.pers2  + b.pers2 \
-	})
+#define FLUTTER_ADDED_TRANSFORMATIONS(a, b) ((FlutterTransformation){.scaleX = a.scaleX + b.scaleX, .skewX = a.skewX + b.skewX, .transX = a.transX + b.transX, .skewY = a.skewY + b.skewY, .scaleY = a.scaleY + b.scaleY, .transY = a.transY + b.transY, .pers0 = a.pers0 + b.pers0, .pers1 = a.pers1 + b.pers1, .pers2 = a.pers2 + b.pers2})
 
 /**
  * A transformation that is the result of transponating a.
  */
-#define FLUTTER_TRANSPONATED_TRANSFORMATION(a) ((FlutterTransformation) \
-	{.scaleX = a.scaleX, .skewX  = a.skewY,  .transX = a.pers0, \
-	 .skewY  = a.skewX,  .scaleY = a.scaleY, .transY = a.pers1, \
-	 .pers0  = a.transX, .pers1  = a.transY, .pers2  = a.pers2, \
-	})
+#define FLUTTER_TRANSPONATED_TRANSFORMATION(a) ((FlutterTransformation){ \
+	.scaleX = a.scaleX,                                                  \
+	.skewX = a.skewY,                                                    \
+	.transX = a.pers0,                                                   \
+	.skewY = a.skewX,                                                    \
+	.scaleY = a.scaleY,                                                  \
+	.transY = a.pers1,                                                   \
+	.pers0 = a.transX,                                                   \
+	.pers1 = a.transY,                                                   \
+	.pers2 = a.pers2,                                                    \
+})
 
 static inline void apply_flutter_transformation(
 	const FlutterTransformation t,
 	double *px,
-	double *py
-) {
+	double *py)
+{
 	double x = px != NULL ? *px : 0;
 	double y = py != NULL ? *py : 0;
 
-	if (px != NULL) {
-		*px = t.scaleX*x + t.skewX*y + t.transX;
+	if (px != NULL)
+	{
+		*px = t.scaleX * x + t.skewX * y + t.transX;
 	}
 
-	if (py != NULL) {
-		*py = t.skewY*x + t.scaleY*y + t.transY;
+	if (py != NULL)
+	{
+		*py = t.skewY * x + t.scaleY * y + t.transY;
 	}
 }
 
-#define FLUTTER_RESULT_TO_STRING(result) \
-	((result) == kSuccess ? "Success." : \
-	 (result) == kInvalidLibraryVersion ? "Invalid library version." : \
-	 (result) == kInvalidArguments ? "Invalid arguments." : \
-	 (result) == kInternalInconsistency ? "Internal inconsistency." : "(?)")
+#define FLUTTER_RESULT_TO_STRING(result)                                                                 \
+	((result) == kSuccess ? "Success." : (result) == kInvalidLibraryVersion ? "Invalid library version." \
+									 : (result) == kInvalidArguments		? "Invalid arguments."       \
+									 : (result) == kInternalInconsistency	? "Internal inconsistency."  \
+																			: "(?)")
 
-#define LIBINPUT_EVENT_IS_TOUCH(event_type) (\
-	((event_type) == LIBINPUT_EVENT_TOUCH_DOWN) || \
-	((event_type) == LIBINPUT_EVENT_TOUCH_UP) || \
+#define LIBINPUT_EVENT_IS_TOUCH(event_type) (        \
+	((event_type) == LIBINPUT_EVENT_TOUCH_DOWN) ||   \
+	((event_type) == LIBINPUT_EVENT_TOUCH_UP) ||     \
 	((event_type) == LIBINPUT_EVENT_TOUCH_MOTION) || \
 	((event_type) == LIBINPUT_EVENT_TOUCH_CANCEL) || \
 	((event_type) == LIBINPUT_EVENT_TOUCH_FRAME))
 
-#define LIBINPUT_EVENT_IS_POINTER(event_type) (\
-	((event_type) == LIBINPUT_EVENT_POINTER_MOTION) || \
+#define LIBINPUT_EVENT_IS_POINTER(event_type) (                 \
+	((event_type) == LIBINPUT_EVENT_POINTER_MOTION) ||          \
 	((event_type) == LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE) || \
-	((event_type) == LIBINPUT_EVENT_POINTER_BUTTON) || \
+	((event_type) == LIBINPUT_EVENT_POINTER_BUTTON) ||          \
 	((event_type) == LIBINPUT_EVENT_POINTER_AXIS))
 
-#define LIBINPUT_EVENT_IS_KEYBOARD(event_type) (\
+#define LIBINPUT_EVENT_IS_KEYBOARD(event_type) ( \
 	((event_type) == LIBINPUT_EVENT_KEYBOARD_KEY))
 
-enum frame_state {
+enum frame_state
+{
 	kFramePending,
 	kFrameRendering,
 	kFrameRendered
 };
 
-struct frame {
+struct frame
+{
 	/// The current state of the frame.
 	/// - Pending, when the frame was requested using the FlutterProjectArgs' vsync_callback.
 	/// - Rendering, when the baton was returned to the engine
@@ -312,36 +313,42 @@ struct frame {
 
 struct compositor;
 
-enum flutter_runtime_mode {
-	kDebug, kRelease
+enum flutter_runtime_mode
+{
+	kDebug,
+	kRelease
 };
 
-struct flutterpi {
+struct flutterpi
+{
 	/// graphics stuff
-	struct {
+	struct
+	{
 		struct drmdev *drmdev;
 		drmEventContext evctx;
 		sd_event_source *drm_pageflip_event_source;
 		bool platform_supports_get_sequence_ioctl;
 	} drm;
 
-	struct {
-		struct gbm_device  *device;
+	struct
+	{
+		struct gbm_device *device;
 		struct gbm_surface *surface;
-		uint32_t 			format;
-		uint64_t			modifier;
+		uint32_t format;
+		uint64_t modifier;
 	} gbm;
 
-	struct {
+	struct
+	{
 		EGLDisplay display;
-		EGLConfig  config;
+		EGLConfig config;
 		EGLContext root_context;
 		EGLContext flutter_render_context;
 		EGLContext flutter_resource_uploading_context;
 		EGLContext compositor_context;
 		EGLSurface surface;
 
-		char      *renderer;
+		char *renderer;
 
 		PFNEGLGETPLATFORMDISPLAYEXTPROC getPlatformDisplay;
 		PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC createPlatformWindowSurface;
@@ -350,14 +357,18 @@ struct flutterpi {
 		PFNEGLEXPORTDRMIMAGEMESAPROC exportDRMImageMESA;
 	} egl;
 
-	struct  {
+	struct
+	{
 		PFNGLEGLIMAGETARGETTEXTURE2DOESPROC EGLImageTargetTexture2DOES;
 		PFNGLEGLIMAGETARGETRENDERBUFFERSTORAGEOESPROC EGLImageTargetRenderbufferStorageOES;
 	} gl;
 
-	struct {
+	struct
+	{
 		/// width & height of the display in pixels.
 		int width, height;
+
+		bool override_gpu_resolution;
 
 		/// physical width & height of the display in millimeters
 		/// the physical size can only be queried for HDMI displays (and even then, most displays will
@@ -375,7 +386,8 @@ struct flutterpi {
 		double pixel_ratio;
 	} display;
 
-	struct {
+	struct
+	{
 		/// This is false when the value in the "orientation" field is
 		/// unset. (Since we can't just do orientation = null)
 		bool has_orientation;
@@ -391,14 +403,14 @@ struct flutterpi {
 		/// (applied as a rotation to the flutter window in transformation_callback, and also
 		/// is used to determine if width/height should be swapped when sending a WindowMetrics event to flutter)
 		int rotation;
-		
+
 		/// width & height of the flutter view. These are the dimensions send to flutter using
 		/// [FlutterEngineSendWindowMetricsEvent]. (So, for example, with rotation == 90, these
 		/// dimensions are swapped compared to the display dimensions)
 		int width, height;
 
 		int width_mm, height_mm;
-		
+
 		/// Used by flutter to transform the flutter view to fill the display.
 		/// Matrix that transforms flutter view coordinates to display coordinates.
 		FlutterTransformation view_to_display_transform;
@@ -415,9 +427,10 @@ struct flutterpi {
 	/// IO
 	sd_event_source *user_input_event_source;
 	struct user_input *user_input;
-	
+
 	/// flutter stuff
-	struct {
+	struct
+	{
 		char *asset_bundle_path;
 		char *kernel_blob_path;
 		char *app_elf_path;
@@ -430,7 +443,7 @@ struct flutterpi {
 		struct libflutter_engine libflutter_engine;
 		FlutterEngine engine;
 	} flutter;
-	
+
 	/// main event loop
 	pthread_t event_loop_thread;
 	pthread_mutex_t event_loop_mutex;
@@ -441,16 +454,20 @@ struct flutterpi {
 	struct plugin_registry *plugin_registry;
 };
 
-struct platform_task {
+struct platform_task
+{
 	int (*callback)(void *userdata);
 	void *userdata;
 };
 
-struct platform_message {
+struct platform_message
+{
 	bool is_response;
-	union {
+	union
+	{
 		FlutterPlatformMessageResponseHandle *target_handle;
-		struct {
+		struct
+		{
 			char *target_channel;
 			FlutterPlatformMessageResponseHandle *response_handle;
 		};
@@ -465,40 +482,34 @@ int flutterpi_fill_view_properties(
 	bool has_orientation,
 	enum device_orientation orientation,
 	bool has_rotation,
-	int rotation
-);
+	int rotation);
 
 int flutterpi_post_platform_task(
 	int (*callback)(void *userdata),
-	void *userdata
-);
+	void *userdata);
 
 int flutterpi_post_platform_task_with_time(
 	int (*callback)(void *userdata),
 	void *userdata,
-	uint64_t target_time_usec
-);
+	uint64_t target_time_usec);
 
 int flutterpi_sd_event_add_io(
 	sd_event_source **source_out,
 	int fd,
 	uint32_t events,
 	sd_event_io_handler_t callback,
-	void *userdata
-);
+	void *userdata);
 
 int flutterpi_send_platform_message(
 	const char *channel,
 	const uint8_t *restrict message,
 	size_t message_size,
-	FlutterPlatformMessageResponseHandle *responsehandle
-);
+	FlutterPlatformMessageResponseHandle *responsehandle);
 
 int flutterpi_respond_to_platform_message(
 	FlutterPlatformMessageResponseHandle *handle,
 	const uint8_t *restrict message,
-	size_t message_size
-);
+	size_t message_size);
 
 int flutterpi_schedule_exit(void);
 
