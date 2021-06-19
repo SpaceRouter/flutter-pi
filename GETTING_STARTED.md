@@ -30,6 +30,8 @@ In each step below with Bash commands, the commands start with a set of `export`
    popd
    echo You will need to set ARM to: $ARM
    ```
+
+   You can use `cmake -DINVERTED_INPUT=on ..` if your input is inverted.
    
    Take a note of the last line of output. It should say you need "arm" or "arm64". This is used to set ARM below.
    

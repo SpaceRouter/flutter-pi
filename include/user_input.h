@@ -8,17 +8,18 @@
 #define MAX_COLLECTED_FLUTTER_POINTER_EVENTS 64
 
 #define FLUTTER_POINTER_EVENT(_phase, _timestamp, _x, _y, _device, _signal_kind, _scroll_delta_x, _scroll_delta_y, _device_kind, _buttons) \
-    (FlutterPointerEvent) { \
-        .struct_size = sizeof(FlutterPointerEvent), \
-        .phase = (_phase), \
-        .timestamp = (_timestamp), \
-        .x = (_x), .y = (_y), \
-        .device = (_device), \
-        .signal_kind = (_signal_kind), \
-        .scroll_delta_x = (_scroll_delta_x), \
-        .scroll_delta_y = (_scroll_delta_y), \
-        .device_kind = (_device_kind), \
-        .buttons = (_buttons) \
+    (FlutterPointerEvent)                                                                                                                  \
+    {                                                                                                                                      \
+        .struct_size = sizeof(FlutterPointerEvent),                                                                                        \
+        .phase = (_phase),                                                                                                                 \
+        .timestamp = (_timestamp),                                                                                                         \
+        .x = (_x), .y = (_y),                                                                                                              \
+        .device = (_device),                                                                                                               \
+        .signal_kind = (_signal_kind),                                                                                                     \
+        .scroll_delta_x = (_scroll_delta_x),                                                                                               \
+        .scroll_delta_y = (_scroll_delta_y),                                                                                               \
+        .device_kind = (_device_kind),                                                                                                     \
+        .buttons = (_buttons)                                                                                                              \
     }
 
 #define FLUTTER_POINTER_TOUCH_ADD_EVENT(_timestamp, _x, _y, _device_id) \
@@ -49,16 +50,15 @@
     FLUTTER_POINTER_EVENT(kRemove, _timestamp, _x, _y, _device_id, kFlutterPointerSignalKindNone, 0.0, 0.0, kFlutterPointerDeviceKindMouse, _buttons)
 
 #define FLUTTER_POINTER_MOUSE_MOVE_EVENT(_timestamp, _x, _y, _device_id, _buttons) \
-    FLUTTER_POINTER_EVENT( \
-        (_buttons) & kFlutterPointerButtonMousePrimary ? kMove : kHover, \
-        _timestamp, \
-        _x, _y, \
-        _device_id, \
-        kFlutterPointerSignalKindNone, \
-        0.0, 0.0, \
-        kFlutterPointerDeviceKindMouse, \
-        _buttons\
-    )
+    FLUTTER_POINTER_EVENT(                                                         \
+        (_buttons)&kFlutterPointerButtonMousePrimary ? kMove : kHover,             \
+        _timestamp,                                                                \
+        _x, _y,                                                                    \
+        _device_id,                                                                \
+        kFlutterPointerSignalKindNone,                                             \
+        0.0, 0.0,                                                                  \
+        kFlutterPointerDeviceKindMouse,                                            \
+        _buttons)
 
 typedef void (*flutter_pointer_event_callback_t)(void *userdata, const FlutterPointerEvent *events, size_t n_events);
 
@@ -67,19 +67,19 @@ typedef void (*utf8_character_callback_t)(void *userdata, uint8_t *character);
 typedef void (*xkb_keysym_callback_t)(void *userdata, xkb_keysym_t keysym);
 
 typedef void (*gtk_keyevent_callback_t)(
-	void *userdata,
-	uint32_t unicode_scalar_values,
+    void *userdata,
+    uint32_t unicode_scalar_values,
     uint32_t key_code,
     uint32_t scan_code,
     uint32_t modifiers,
-    bool is_down
-);
+    bool is_down);
 
 typedef void (*set_cursor_enabled_callback_t)(void *userdata, bool enabled);
 
 typedef void (*move_cursor_callback_t)(void *userdata, unsigned int x, unsigned int y);
 
-struct user_input_interface {
+struct user_input_interface
+{
     flutter_pointer_event_callback_t on_flutter_pointer_event;
     utf8_character_callback_t on_utf8_character;
     xkb_keysym_callback_t on_xkb_keysym;
@@ -95,13 +95,12 @@ struct user_input;
  * and create a udev-backed libinput instance.
  */
 struct user_input *user_input_new(
-    const struct user_input_interface *interface, 
+    const struct user_input_interface *interface,
     void *userdata,
     const FlutterTransformation *display_to_view_transform,
     const FlutterTransformation *view_to_display_transform,
-	unsigned int display_width,
-	unsigned int display_height
-);
+    unsigned int display_width,
+    unsigned int display_height);
 
 /**
  * @brief Destroy this user input instance and free all allocated memory. This will not remove any input devices
@@ -121,8 +120,7 @@ void user_input_set_transform(
     const FlutterTransformation *display_to_view_transform,
     const FlutterTransformation *view_to_display_transform,
     unsigned int display_width,
-    unsigned int display_height
-);
+    unsigned int display_height);
 
 /**
  * @brief Returns a filedescriptor used for input event notification. The returned
@@ -138,4 +136,13 @@ int user_input_get_fd(struct user_input *input);
  */
 int user_input_on_fd_ready(struct user_input *input);
 
+#ifdef INVERTED_INPUT
+#pragma message "Input inverted"
+#define transformed_x_input(touch_event, display_width) display_width - libinput_event_touch_get_y_transformed(touch_event, display_width)
+#define transformed_y_input(touch_event, display_height) libinput_event_touch_get_x_transformed(touch_event, display_height)
+#else
+#pragma message "Input not inverted"
+#define transformed_x_input(touch_event, display_width) libinput_event_touch_get_x_transformed(touch_event, display_width)
+#define transformed_y_input(touch_event, display_height) libinput_event_touch_get_y_transformed(touch_event, display_height)
+#endif
 #endif

@@ -35,6 +35,11 @@ message(STATUS "Generator .............. ${CMAKE_GENERATOR}")
 message(STATUS "Build Type ............. ${CMAKE_BUILD_TYPE}")
 
 OPTION(OMXPLAYER_SUPPORTS_RUNTIME_ROTATION "Whether omxplayer supports runtime rotation." OFF)
+OPTION(INVERTED_INPUT "Invert input" OFF)
+
+if(INVERTED_INPUT)
+add_definitions(-DINVERTED_INPUT)
+endif()
 
 if(NOT FLUTTER_EMBEDDER_HEADER)
 
